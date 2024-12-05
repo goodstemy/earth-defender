@@ -1,26 +1,29 @@
-import { drawStars } from '../common/background';
-import { getContext } from '../common/canvas';
-import UFOSpawn from '../spawners/ufo';
-import BulletSpawn from '../spawners/bullet';
-import Player from '../player';
+import { drawStars } from "../common/background";
+import { getContext } from "../common/canvas";
+import UFOSpawn from "../spawners/ufo";
+import BulletSpawn from "../spawners/bullet";
+import { DamageInfo } from "../units/damage-info";
 
 export default class Renderer {
   pause = false;
   startTs;
-  player = new Player();
   entities = new Map();
   enemies = new Map();
-  screen;
+  damages = new Map();
+  player;
+  gameOverCb;
+  rafId;
 
-  constructor(entities, screen) {
+  constructor(entities, player) {
     this.entities = entities;
-    this.screen = screen;
+    this.player = player;
 
-    UFOSpawn.setPLayer(this.player);
+    UFOSpawn.setPlayer(this.player);
   }
 
-  start() {
+  start(gameOverCb) {
     this.pause = false;
+    this.gameOverCb = gameOverCb;
 
     this.render(+new Date());
   }
@@ -35,17 +38,19 @@ export default class Renderer {
     }
 
     if (this.pause) {
+      cancelAnimationFrame(this.rafId);
       return;
     }
 
     if (this.player.dead) {
-      this.screen.showGameOver();
-      this.stop();
-      this.player.reset();
-      this.entities = new Map();
-      UFOSpawn.reset();
-      BulletSpawn.reset();
-      return;
+      return this.gameOverCb();
+      //   this.screen.showGameOver();
+      //   this.stop();
+      //   this.player.reset();
+      //   this.entities = new Map();
+      //   UFOSpawn.reset();
+      //   BulletSpawn.reset();
+      //   return;
     }
 
     const ctx = getContext();
@@ -55,13 +60,16 @@ export default class Renderer {
     this.startTs = now;
 
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
     drawStars();
     this.player.drawHP();
 
     const ufo = UFOSpawn.spawn();
-    !!ufo && this.enemies.set(ufo) && BulletSpawn.addEnemy(ufo);
+    const bullet = BulletSpawn.spawn((damageInfo) => {
+      !!damageInfo && this.entities.set(damageInfo);
+    });
 
-    const bullet = BulletSpawn.spawn();
+    !!ufo && this.enemies.set(ufo) && BulletSpawn.addEnemy(ufo);
     !!bullet && this.entities.set(bullet);
 
     for (const entity of this.entities.keys()) {
@@ -84,6 +92,6 @@ export default class Renderer {
       entity.draw();
     }
 
-    requestAnimationFrame(() => this.render());
+    this.rafId = requestAnimationFrame(() => this.render());
   }
-};
+}

@@ -1,11 +1,11 @@
 import { getContext } from "../../common/canvas";
 import { Bullet } from "../../units/bullet";
 
-
 class BulletSpawn {
-  spawnTimeout = 4000;
+  spawnTimeout = 2000;
   lastSpawn = null;
   enemies = new Map();
+  addDamageCb;
 
   addEnemy(enemy) {
     this.enemies.set(enemy);
@@ -33,6 +33,10 @@ class BulletSpawn {
         continue;
       }
 
+      if (enemy.hp - this.damage <= 0) {
+        nearestEnemy.willBeDead = true;
+      }
+
       if (enemy.L < L) {
         L = enemy.L;
         nearestEnemy = enemy;
@@ -42,7 +46,10 @@ class BulletSpawn {
     return nearestEnemy;
   }
 
-  spawn() {
+  spawn(addDamageCb) {
+    if (!this.addDamageCb) {
+      this.addDamageCb = addDamageCb;
+    }
     // context.fillStyle = 'white';
     // context.font = "40px serif";
     // context.fillText(`enemies count = ${this.enemies.size}`, 200, 40);
@@ -50,26 +57,25 @@ class BulletSpawn {
     // console.log('enemies count =', this.enemies.size);
     const spawnTime = +new Date();
     if (this.lastSpawn && this.lastSpawn + this.spawnTimeout > spawnTime) {
-      return;
+      return null;
     }
 
-    const nearestEnemy = this.findNearestEnemy(this.enemies);
+    const nearestEnemy = this.findNearestEnemy();
 
     if (!nearestEnemy) {
-      return;
+      return null;
     }
 
     const bullet = new Bullet({
-      name: 'bullet',
+      name: "bullet",
       w: 50,
       h: 50,
-      speed: 100,
+      speed: 200,
     });
 
     bullet.init();
+    bullet.setDamageCb(this.addDamageCb);
     bullet.setTarget(nearestEnemy);
-
-    nearestEnemy.willBeDead = true;
 
     this.lastSpawn = spawnTime;
 

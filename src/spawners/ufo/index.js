@@ -1,12 +1,11 @@
 import { UFO } from "../../units/ufo";
 
-
 class UFOSpawn {
-  spawnTimeout = 1000;
+  spawnTimeout = 3000;
   lastSpawn = null;
   player = null;
 
-  setPLayer(player) {
+  setPlayer(player) {
     this.player = player;
   }
 
@@ -25,7 +24,7 @@ class UFOSpawn {
     }
 
     const ufo = new UFO({
-      name: 'ufo',
+      name: "ufo",
       w: 50,
       h: 50,
       speed: 100,

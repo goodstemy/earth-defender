@@ -1,6 +1,6 @@
 import { getContext } from "../../common/canvas";
 import { BaseUnit } from "../base-unit";
-import assetLoader from '../../loader/asset';
+import assetLoader from "../../loader/asset";
 import { lenOfVec, randomIntBetween } from "../../common/utils";
 
 function normalizeAngle(angle) {
@@ -8,6 +8,7 @@ function normalizeAngle(angle) {
 }
 
 export class UFO extends BaseUnit {
+  hp = 3;
   sideX;
   sideY;
   initialX;
@@ -24,21 +25,28 @@ export class UFO extends BaseUnit {
 
   setPlayer(player) {
     this.player = player;
-  } 
-  
+  }
+
+  addDamage(damage) {
+    this.hp -= damage;
+
+    if (this.hp <= 0) {
+      this.deleted = true;
+    }
+  }
+
   init() {
     super.init();
 
-    this.sideX = randomIntBetween(1,2) === 1 ? 0 - this.w : window.innerWidth + this.w;
-    this.sideY = randomIntBetween(1,2) === 1 ? 0 - this.h : window.innerHeight + this.h;
+    this.sideX =
+      randomIntBetween(1, 2) === 1 ? 0 - this.w : window.innerWidth + this.w;
+    this.sideY =
+      randomIntBetween(1, 2) === 1 ? 0 - this.h : window.innerHeight + this.h;
 
     this.targetX = window.innerWidth / 2;
     this.targetY = window.innerHeight / 2;
 
-    // console.log('initial', this.targetX, this.targetY)
-
-    if (randomIntBetween(1,10) > 5) {
-      // console.log()
+    if (randomIntBetween(1, 10) > 5) {
       this.x = this.sideX;
       this.y = randomIntBetween(0, window.innerHeight + this.h);
     } else {
@@ -51,7 +59,6 @@ export class UFO extends BaseUnit {
   }
 
   move(dt) {
-    // console.log(this.targetX, this.targetY)
     if (this.deleted) {
       return;
     }
@@ -92,13 +99,20 @@ export class UFO extends BaseUnit {
 
     ctx.translate(this.x, this.y);
     // ctx.rotate(this.sideX <= 0 ? angle : angle + Math.sin(Math.PI));
-    ctx.rotate(Math.abs(angle) > 2.5 ? angle + Math.PI : angle)
-    ctx.drawImage(this.loadedAsset, -this.loadedAsset.width/2, -this.loadedAsset.height/2, this.loadedAsset.width, this.loadedAsset.height);
+    ctx.rotate(Math.abs(angle) > 2.5 ? angle + Math.PI : angle);
+    ctx.drawImage(
+      this.loadedAsset,
+      -this.loadedAsset.width / 2,
+      -this.loadedAsset.height / 2,
+      this.loadedAsset.width,
+      this.loadedAsset.height,
+    );
 
     ctx.restore();
-    // ctx.font = "48px serif";
-    // ctx.fillStyle = 'white';
+    // ctx.font = "20px serif";
+    // ctx.fillStyle = "white";
     // ctx.fillText(angle.toFixed(6), this.x, this.y);
+    // ctx.fillText(`${this.x.toFixed(2)},${this.y.toFixed(2)}`, this.x, this.y);
   }
 
   destroy() {
